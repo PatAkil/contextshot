@@ -3,6 +3,7 @@
 package main
 
 import (
+	_ "embed"
 	"log"
 
 	"github.com/getlantern/systray"
@@ -12,12 +13,15 @@ import (
 	"github.com/PatAkil/contextshot/internal/pipeline"
 )
 
+//go:embed icon.png
+var iconPNG []byte
+
 func main() {
 	systray.Run(onReady, func() {})
 }
 
 func onReady() {
-	systray.SetTitle("📸")
+	systray.SetTemplateIcon(iconPNG, iconPNG)
 	systray.SetTooltip("Contextshot — capture screen text")
 
 	mCapture := systray.AddMenuItem("Capture now", "Capture text from a screen region")

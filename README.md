@@ -199,4 +199,4 @@ by Florian Bütow. See that repository for its license and terms.
 
 ## License
 
-<!-- Add your license here -->
+[MIT](LICENSE) © 2026 Patrick Akil

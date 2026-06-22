@@ -190,6 +190,13 @@ See [AGENTS.md](AGENTS.md) for detailed development guidelines including:
 - Testing requirements
 - Project structure conventions
 
+## Acknowledgments
+
+The project skeleton — the `justfile`, `just ci` validation pipeline, semgrep
+rules, `arch-go.yml`, and `AGENTS.md` — was generated from the `go-cli-base`
+blueprint of [**ai-guardrails**](https://github.com/florianbuetow/ai-guardrails)
+by Florian Bütow. See that repository for its license and terms.
+
 ## License
 
 <!-- Add your license here -->

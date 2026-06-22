@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ci:
+    # macOS runner is required: cmd/ uses cgo against Cocoa (systray) and
+    # Carbon (hotkey), which only build on macOS.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Put go-installed tools on PATH
+        run: echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Install just, semgrep, codespell
+        run: brew install just semgrep codespell
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_INSTALL_CLEANUP: 1
+
+      - name: Recreate pre-commit hook (just init checks for it)
+        run: |
+          mkdir -p .git/hooks
+          printf '%s\n' '#!/usr/bin/env sh' 'set -e' 'just ci-quiet' > .git/hooks/pre-commit
+          chmod +x .git/hooks/pre-commit
+
+      - name: Run full validation pipeline
+        run: just ci
+        env:
+          GOTOOLCHAIN: auto

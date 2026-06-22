@@ -17,7 +17,11 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          # Must match the `toolchain` directive in go.mod. The base Go used to
+          # `go install` the lint/security tools has to be the same major as the
+          # module toolchain, or tools built with an older Go can't analyze the
+          # newer stdlib (e.g. govulncheck on the 1.26 std vendor tree).
+          go-version: "1.26.4"
 
       - name: Put go-installed tools on PATH
         run: echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"

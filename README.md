@@ -31,40 +31,74 @@ through a one-time Shortcut you create yourself.
 
 In the **Shortcuts** app, create a shortcut named exactly `Contextshot OCR`:
 
-1. Add the action **Extract Text from Image**.
-2. Set its input to the **Shortcut Input** (accept Images/Files).
-3. The shortcut's final output must be the extracted text (Contextshot reads it
-   from the shortcut's file output — no "copy to clipboard" action needed).
+1. Click **+** to create a new shortcut and rename it (top center) to
+   `Contextshot OCR`.
+2. Add the action **Extract Text from Image**.
+3. Make the shortcut accept an image as input: open the shortcut's **ⓘ**
+   (Details) panel and turn on **Show in Share Sheet**, then drag the
+   **Shortcut Input** variable into the action's "Image" field (so the image
+   passed with `-i` flows into the OCR action).
+4. The shortcut's final output must be the extracted text — Contextshot reads it
+   from the shortcut's file output (`-o`). No "Copy to Clipboard" action needed.
 
-Verify it from the terminal:
+Verify it from the terminal (the output should be the text in the image):
 
 ```bash
 shortcuts run "Contextshot OCR" -i /path/to/some-image.png -o /tmp/out.txt && cat /tmp/out.txt
 ```
 
-### 2. Grant permissions (prompted on first use)
+### 2. Grant Screen Recording
 
-- **Screen Recording** — required for `screencapture` to read screen content.
-- **Accessibility** — required for the global hotkey (Cmd+Shift+2).
+The **only** permission Contextshot needs is **Screen Recording** (so
+`screencapture` can read the screen). The global hotkey uses Carbon and needs
+**no** Accessibility or Input Monitoring permission.
 
-System Settings → Privacy & Security → enable Contextshot (or your terminal, if
-running via `just run`) under both sections, then restart the app.
+On your first capture, macOS prompts "Contextshot would like to record this
+screen" → **Open System Settings** → enable **Contextshot** under
+**Privacy & Security → Screen Recording**, then let it **Quit & Reopen**.
+
+> **If you run via `just run` instead of the app**, the permission attaches to
+> your *terminal* app, not Contextshot — granting your terminal Screen Recording
+> lets *anything* it launches read the screen. Prefer the packaged app below so
+> the permission belongs to Contextshot itself.
 
 ## Build & run
 
-Install dev tools and run from source (a Dock icon appears in this mode):
+Install dev tools and run the standalone menu-bar app (no Dock icon, via
+`LSUIElement`) — this is the recommended way to run it:
 
 ```bash
 just init
-just run
-```
-
-Build the standalone menu-bar app (no Dock icon, via `LSUIElement`):
-
-```bash
 just package
 open dist/Contextshot.app
 ```
+
+`just package` ad-hoc code-signs the bundle with a stable identifier
+(`com.patakil.contextshot`) so its code signature and app identity agree, which
+is required for the Screen Recording grant to apply.
+
+For quick dev iteration you can also run from source (`just run`), but a Dock
+icon appears and Screen Recording attaches to your terminal (see note above).
+
+### Re-granting Screen Recording after a rebuild
+
+The bundle is **ad-hoc signed**, so every `just package` produces a new code
+hash and macOS treats it as a different app — the Screen Recording toggle may
+still show "on" but the app gets re-prompted (or capture silently fails). When
+that happens, clear the stale grant and re-allow:
+
+```bash
+tccutil reset ScreenCapture com.patakil.contextshot
+```
+
+Then remove any stale **Contextshot** row from **Screen Recording** (select it,
+click **−**), relaunch the app, trigger a capture, and accept the fresh prompt.
+
+To avoid this entirely, sign the app with a **stable self-signed identity**
+(Keychain Access → Certificate Assistant → *Create a Certificate* → type
+**Code Signing**), then replace the `--sign -` in `scripts/package.sh` with your
+certificate name. With a stable identity the Screen Recording grant survives
+rebuilds.
 
 ## Repository Structure
 
@@ -89,10 +123,14 @@ contextshot/
 
 ## Usage
 
-- Press **Cmd+Shift+2** anywhere, or click the menu-bar **📸 → Capture now**.
+- Press **Cmd+Shift+2** anywhere, or click the menu-bar **viewfinder icon →
+  Capture now** (the icon is at the top-right of the screen; it's a menu-bar-only
+  app with no Dock icon or window).
 - Drag to select a region (press **Esc** to cancel — no error).
 - The recognized text is on your clipboard; a toast confirms the character count.
-- Quit from the menu-bar **📸 → Quit**.
+- Quit from the menu-bar **viewfinder icon → Quit**.
+- To launch at login: System Settings → General → Login Items → **+** →
+  select `dist/Contextshot.app`.
 
 See all developer commands with `just help`.
 

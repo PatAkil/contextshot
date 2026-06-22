@@ -36,4 +36,9 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
+# Ad-hoc sign with a stable identifier matching the bundle id, so the code
+# signature and LaunchServices identity agree (required for TCC permissions
+# like Accessibility and Screen Recording to actually apply).
+codesign --force --sign - --identifier com.patakil.contextshot "$MACOS_DIR/contextshot"
+
 echo "Built $APP"

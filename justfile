@@ -50,6 +50,7 @@ help:
     @echo ""
     @printf "\033[0;33mRun:\033[0m\n"
     @printf "  %-40s %s\n" "run" "Run the main application"
+    @printf "  %-40s %s\n" "package" "Build Contextshot.app bundle into dist/"
     @echo ""
     @printf "\033[0;33mCode Quality:\033[0m\n"
     @printf "  %-40s %s\n" "code-format" "Auto-fix code formatting"
@@ -146,6 +147,16 @@ run:
     @printf "\033[0;34m=== Running Application ===\033[0m\n"
     @go run ./cmd/...
     @echo ""
+
+# Build Contextshot.app bundle into dist/
+package:
+    #!/usr/bin/env bash
+    set -e
+    echo ""
+    printf "\033[0;34m=== Packaging Contextshot.app ===\033[0m\n"
+    bash scripts/package.sh
+    printf "\033[0;32m✓ App bundle built at dist/Contextshot.app\033[0m\n"
+    echo ""
 
 # Auto-fix code formatting
 code-format:

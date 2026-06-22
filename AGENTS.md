@@ -1,0 +1,71 @@
+# Development Rules for contextshot
+
+This file provides guidance to AI agents and AI-assisted development tools when working with this project. This includes Claude Code, Cursor IDE, GitHub Copilot, Windsurf, and any other AI coding assistants.
+
+## General Coding Principles
+- **Fail fast — never swallow errors.** Always propagate errors and exit with code 1 immediately. No silent fallbacks, no ignored return codes.
+- **Never assume any default values anywhere.** Check for required values explicitly and fail if something is missing. Default values mask underlying issues and make them hard to debug.
+- **Never suppress checks with annotations.** Fix the underlying issue instead. No `//nolint`, `// #nosec`, or any other mechanism that silences a checker.
+- Always be explicit about values, paths, and configurations
+- If a value is not provided, return an error — never silently fall back to a default
+- All errors must be checked and handled — never assign to blank identifier `_`
+
+## Git Commit Guidelines
+
+**IMPORTANT:** When creating git commits in this repository:
+- **NEVER include AI attribution in commit messages**
+- **NEVER add "Generated with [AI tool name]" or similar phrases**
+- **NEVER add "Co-Authored-By: [AI name]" or similar attribution**
+- **NEVER run `git add -A` or `git add .` - always stage files explicitly**
+- Keep commit messages professional and focused on the changes made
+- Commit messages should describe what changed and why, without mentioning AI assistance
+- **ALWAYS run `git push` after creating a commit to push changes to the remote repository**
+
+## Testing
+- After **every change** to the code, the tests must be executed
+- Always verify the program runs correctly with `just run` after modifications
+- Run `just test` to execute unit tests
+- Run `just code-architecture` to check architecture rules (arch-go)
+
+## Go Execution Rules
+- Build and run via `go run ./cmd/...` or `go build ./cmd/...`
+- Run tests via `go test -race ./...`
+- Manage dependencies via `go mod tidy`
+- **FORBIDDEN**: manually editing `go.sum`, vendoring without discussion
+
+## Justfile Conventions
+- **Use `printf` for colored or formatted output** — never `echo` with ANSI escape sequences, as some terminals won't render colors with `echo`. Plain `echo ""` is acceptable only for blank-line spacing.
+- **Add an empty `@echo ""` line before and after each target's command block** to visually separate output between targets.
+- **The `help` target must be a dedicated recipe** with manually written `printf` lines that group related commands and order them by typical execution flow (setup → run → code quality → testing). Never use `just --list`.
+- **The default target (`_default`) must call `just help`.**
+- **Every target must end with a clear status message**: green (`\033[32m`) on success, red (`\033[31m`) on failure with `exit 1`.
+- **Composite targets (e.g. `ci`) must fail fast**: use `set -e` or `&&` chaining.
+- Use `just init` to set up the project
+- Use `just run` to execute the main program
+- Use `just destroy` to remove build artifacts
+- Use `just ci` to run all validation checks (verbose)
+- Use `just ci-quiet` to run all validation checks (silent, fail-fast)
+
+## Project Structure
+- Entry point lives in `cmd/`
+- Application logic lives in `internal/` (private, not importable by other projects)
+- Test scripts and utilities go in `scripts/`
+- **Input data is organized**: `data/input/`
+- **Output data is organized**: `data/output/`
+- **Never create Go files in the project root directory** (except go.mod, go.sum)
+  - Wrong: `./app.go`, `./helper.go`
+  - Correct: `./cmd/main.go`, `./internal/app/app.go`
+
+## Error Handling
+- Fail fast — stop immediately on the first error, never continue past failures
+- Every error must be checked — never use `_ = funcThatReturnsError()`
+- Wrap errors with context: `fmt.Errorf("doing X: %w", err)`
+- Return errors to callers; let main() decide how to handle fatal errors
+- Use `errors.Is()` and `errors.As()` for error inspection, not string matching
+- Exit with code 1 if any operation fails, 0 if all succeeded
+
+## Optimization
+- **Skip processing if output already exists** - Don't reprocess unnecessarily
+- Check if output file exists before starting expensive operations
+- Track skipped items separately in summary reports
+- Allow users to force reprocessing by deleting output files

@@ -6,7 +6,7 @@ toolchain go1.26.4
 
 require (
 	github.com/getlantern/systray v1.2.2
-	golang.design/x/hotkey v0.6.1
+	golang.design/x/hotkey v0.4.1
 )
 
 require (
